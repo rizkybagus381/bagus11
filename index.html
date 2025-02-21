@@ -1,313 +1,147 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Sistem Input Barang</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
-        }
-        header {
-            background: #333;
-            color: #fff;
-            padding-top: 30px;
-            min-height: 70px;
-            border-bottom: #77aaff 3px solid;
-        }
-        header a {
-            color: #fff;
-            text-decoration: none;
-            text-transform: uppercase;
-            font-size: 16px;
-        }
-        header ul {
-            padding: 0;
-            list-style: none;
-        }
-        header li {
-            float: left;
-            display: inline;
-            padding: 0 20px 0 20px;
-        }
-        .stats, .form {
-            background: #fff;
+            max-width: 600px;
+            margin: 0 auto;
             padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            animation: popUp 0.5s ease-out;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
         }
-        .stats h2, .form h2 {
-            margin-top: 0;
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
         }
-        .form input[type="text"], .form input[type="number"] {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        .form input[type="submit"] {
-            background: #333;
-            color: #fff;
-            border: 0;
-            padding: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        .form input[type="submit"]:hover {
-            background: #555;
+        input, button {
+            padding: 5px;
+            background-color: #333;
+            color: #e0e0e0;
+            border: 1px solid #555;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #ccc;
         }
         th, td {
-            padding: 10px;
+            border: 1px solid #555;
+            padding: 8px;
             text-align: left;
         }
-        th {
-            background-color: #f2f2f2;
-        }
-        button.delete {
-            background-color: red;
+        .delete-btn {
+            background-color: #8b0000;
             color: white;
             border: none;
             padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        button.delete:hover {
-            background-color: darkred;
-        }
-        .pin-popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #fff;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            animation: popUp 0.5s ease-out;
-            z-index: 1000;
-        }
-        .pin-popup input[type="password"] {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        .pin-popup input[type="submit"], .pin-popup button.close {
-            background: #333;
-            color: #fff;
-            border: 0;
-            padding: 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-right: 10px;
-        }
-        .pin-popup input[type="submit"]:hover, .pin-popup button.close:hover {
-            background: #555;
-        }
-        footer {
-            text-align: center;
-            padding: 10px;
-            background: #333;
-            color: #fff;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-        }
-        @keyframes popUp {
-            from {
-                transform: scale(0.5);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-        .blur {
-            filter: blur(5px);
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Dashboard</h1>
-        </div>
-    </header>
-    <div class="container">
-        <div class="stats">
-            <h2>Statistics</h2>
-            <p id="stats">No data available</p>
-        </div>
-        <div class="form">
-            <h2>Input Data</h2>
-            <form id="dataForm">
-                <input type="text" id="dataName" placeholder="Nama Barang" required>
-                <input type="number" id="dataValue" placeholder="Harga Barang (Rp)" required>
-                <input type="submit" value="Add Data">
-            </form>
-        </div>
-        <table id="dataTable">
-            <thead>
-                <tr>
-                    <th>Nama Barang</th>
-                    <th>Harga Barang (Rp)</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Data rows will be inserted here -->
-            </tbody>
-        </table>
-        <div class="total">
-            <h2>Total Harga Barang: <span id="totalValue">Rp 0</span></h2>
-        </div>
+    <div class="header">
+        <h1>Sistem Input Barang</h1>
     </div>
-    <div class="pin-popup" id="pinPopup">
-        <h2>Enter PIN</h2>
-        <form id="pinForm">
-            <input type="password" id="pinInput" placeholder="Enter PIN" required>
-            <input type="submit" value="Submit">
-            <button type="button" class="close">Close</button>
-        </form>
-    </div>
-    <footer>
-        &copy; 2023 Your Company Name. All rights reserved.
-    </footer>
+
+    <h1>Input Barang</h1>
+    <form id="barangForm">
+        <input type="text" id="namaBarang" placeholder="Nama Barang" required>
+        <input type="number" id="hargaBarang" placeholder="Harga Barang (Rp)" required>
+        <button type="submit">Tambah Barang</button>
+    </form>
+
+    <table id="daftarBarang">
+        <thead>
+            <tr>
+                <th>Nama Barang</th>
+                <th>Harga</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Total Harga: <span id="totalHarga">Rp 0</span></h2>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const dataForm = document.getElementById('dataForm');
-            const dataTable = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
-            const stats = document.getElementById('stats');
-            const totalValue = document.getElementById('totalValue');
-            const pinPopup = document.getElementById('pinPopup');
-            const pinForm = document.getElementById('pinForm');
-            const closeButton = document.querySelector('.pin-popup .close');
-            let data = JSON.parse(localStorage.getItem('data')) || [];
-            let deleteIndex = null;
+        // **Konfigurasi Firebase** (Sudah diperbaiki)
+        const firebaseConfig = {
+            apiKey: "AIzaSyASnRnvKYvIZC7F-p7zcE8F_jD1Or-Bhqk",
+            authDomain: "input-barang-eef3c.firebaseapp.com",
+            projectId: "input-barang-eef3c",
+            storageBucket: "input-barang-eef3c.appspot.com",
+            messagingSenderId: "144968865387",
+            appId: "1:144968865387:web:2ebb2533d52ec07d0b432e",
+            measurementId: "G-YP6N1CTE1Q"
+        };
 
-            function updateStats() {
-                if (data.length === 0) {
-                    stats.textContent = 'No data available';
-                } else {
-                    const total = data.reduce((sum, item) => sum + item.value, 0);
-                    stats.textContent = `Total Data Value: Rp ${total.toLocaleString('id-ID')}`;
-                    totalValue.textContent = `Rp ${total.toLocaleString('id-ID')}`;
-                }
-            }
+        // **Inisialisasi Firebase**
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-            function renderData() {
-                dataTable.innerHTML = '';
-                data.forEach((item, index) => {
-                    const row = dataTable.insertRow();
-                    const cellName = row.insertCell(0);
-                    const cellValue = row.insertCell(1);
-                    const cellAction = row.insertCell(2);
+        const form = document.getElementById('barangForm');
+        const tableBody = document.getElementById('daftarBarang').getElementsByTagName('tbody')[0];
+        const totalHargaSpan = document.getElementById('totalHarga');
+        let totalHarga = 0;
 
-                    cellName.textContent = item.name;
-                    cellValue.textContent = `Rp ${item.value.toLocaleString('id-ID')}`;
-
-                    const button = document.createElement('button');
-                    button.textContent = 'Delete';
-                    button.className = 'delete';
-                    button.addEventListener('click', function() {
-                        deleteIndex = index;
-                        pinPopup.style.display = 'block';
-                        document.querySelector('.container').classList.add('blur');
-                    });
-                    cellAction.appendChild(button);
+        // **Menampilkan Data dari Firestore**
+        function loadData() {
+            db.collection("barang").onSnapshot(snapshot => {
+                tableBody.innerHTML = "";
+                totalHarga = 0;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    tambahBarang(doc.id, data.nama, data.harga);
                 });
+            });
+        }
+
+        // **Menambahkan Barang**
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nama = document.getElementById('namaBarang').value;
+            const harga = parseInt(document.getElementById('hargaBarang').value);
+
+            if (!nama || isNaN(harga)) {
+                alert("Nama dan harga barang harus diisi dengan benar!");
+                return;
             }
 
-            pinForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const pin = document.getElementById('pinInput').value;
-                if (pin === '123') {
-                    data.splice(deleteIndex, 1);
-                    localStorage.setItem('data', JSON.stringify(data));
-                    renderData();
-                    updateStats();
-                    pinPopup.style.display = 'none';
-                    pinForm.reset();
-                    document.querySelector('.container').classList.remove('blur');
-                } else {
-                    alert('Incorrect PIN');
-                }
-            });
-
-            closeButton.addEventListener('click', function() {
-                pinPopup.style.display = 'none';
-                document.querySelector('.container').classList.remove('blur');
-            });
-
-            dataForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const name = document.getElementById('dataName').value;
-                const value = parseInt(document.getElementById('dataValue').value);
-                data.push({ name, value });
-                localStorage.setItem('data', JSON.stringify(data));
-                renderData();
-                updateStats();
-                dataForm.reset();
-            });
-
-            renderData();
-            updateStats();
-
-            // WebSocket connection to sync data across different clients
-            const socket = new WebSocket('wss://yourdomain.com/socket');
-
-            socket.addEventListener('message', function(event) {
-                const message = JSON.parse(event.data);
-                if (message.type === 'update') {
-                    data = message.data;
-                    localStorage.setItem('data', JSON.stringify(data));
-                    renderData();
-                    updateStats();
-                }
-            });
-
-            function sendDataUpdate() {
-                const message = {
-                    type: 'update',
-                    data: data
-                };
-                socket.send(JSON.stringify(message));
-            }
-
-            dataForm.addEventListener('submit', sendDataUpdate);
-            pinForm.addEventListener('submit', sendDataUpdate);
+            db.collection("barang").add({ nama, harga })
+                .then(() => {
+                    form.reset();
+                })
+                .catch(error => console.error("Error: ", error));
         });
+
+        function tambahBarang(id, nama, harga) {
+            const row = tableBody.insertRow();
+            row.innerHTML = `
+                <td>${nama}</td>
+                <td>${formatRupiah(harga)}</td>
+                <td><button class="delete-btn" onclick="hapusBarang('${id}')">Hapus</button></td>
+            `;
+            totalHarga += harga;
+            updateTotalHarga();
+        }
+
+        function hapusBarang(id) {
+            db.collection("barang").doc(id).delete();
+        }
+
+        function updateTotalHarga() {
+            totalHargaSpan.textContent = formatRupiah(totalHarga);
+        }
+
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(angka);
+        }
+
+        loadData();
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
