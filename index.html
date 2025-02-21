@@ -148,97 +148,187 @@
         &copy; 2024 Riski Bagus. All rights reserved.
     </div>
 
-    <!-- Firebase -->
-    <script type="module">
-        // Import Firebase SDK
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyASnRnvKYvIZC7F-p7zcE8F_jD1Or-Bhqk",
-            authDomain: "input-barang-eef3c.firebaseapp.com",
-            projectId: "input-barang-eef3c",
-            storageBucket: "input-barang-eef3c.firebasestorage.app",
-            messagingSenderId: "144968865387",
-            appId: "1:144968865387:web:2ebb2533d52ec07d0b432e",
-            measurementId: "G-YP6N1CTE1Q"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        console.log("Firebase telah diinisialisasi");
-    </script>
-
     <script>
-        // Script aplikasi tetap sama, tidak ada perubahan
+        const loginForm = document.getElementById('loginForm');
+        const barangContainer = document.getElementById('barangContainer');
+        const logContainer = document.getElementById('logContainer');
+        const form = document.getElementById('barangForm');
+        const table = document.getElementById('daftarBarang').getElementsByTagName('tbody')[0];
+        const totalHargaSpan = document.getElementById('totalHarga');
+        const logButton = document.getElementById('logButton');
+        const resetLogForm = document.getElementById('resetLogForm');
+        const backButton = document.getElementById('backButton');
+        const logList = document.getElementById('logList');
+        let totalHarga = 0;
+        let barangList = [];
+        let logActivities = [];
+
+        // Show login form initially
+        loginForm.style.display = 'block';
+
+        document.getElementById('login').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === 'bagus' && password === '1234') {
+                loginSuccess();
+            } else {
+                alert('Username atau password salah!');
+            }
+        });
+
+        document.getElementById('pinLogin').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const pin = document.getElementById('pinOwner').value;
+
+            if (pin === '1234') {
+                loginSuccess();
+            } else {
+                alert('PIN salah!');
+            }
+        });
+
+        function loginSuccess() {
+            loginForm.style.display = 'none';
+            barangContainer.style.display = 'block';
+            loadData();
+        }
+
+        function loadData() {
+            const savedBarangList = localStorage.getItem('barangList');
+            const savedLogActivities = localStorage.getItem('logActivities');
+            if (savedBarangList) {
+                barangList = JSON.parse(savedBarangList);
+                barangList.forEach(barang => tambahBarang(barang.nama, barang.harga, false));
+            }
+            if (savedLogActivities) {
+                logActivities = JSON.parse(savedLogActivities);
+                updateLogList();
+            }
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nama = document.getElementById('namaBarang').value;
+            const hargaInput = document.getElementById('hargaBarang').value;
+            const harga = parseFloat(hargaInput.replace(/\./g, ''));
+
+            if (isNaN(harga)) {
+                alert('Harga harus berupa angka');
+                return;
+            }
+
+            tambahBarang(nama, harga, true);
+            barangList.push({nama, harga});
+            saveToLocalStorage();
+
+            form.reset();
+        });
+
+        function tambahBarang(nama, harga, isNewItem) {
+            const newRow = table.insertRow();
+            newRow.innerHTML = `
+                <td>${nama}</td>
+                <td>${formatRupiah(harga)}</td>
+                <td><button class="delete-btn">Hapus</button></td>
+            `;
+
+            totalHarga += harga;
+            updateTotalHarga();
+
+            newRow.querySelector('.delete-btn').addEventListener('click', function() {
+                totalHarga -= harga;
+                table.removeChild(newRow);
+                updateTotalHarga();
+                barangList = barangList.filter(barang => barang.nama !== nama || barang.harga !== harga);
+                saveToLocalStorage();
+                addLogActivity(`Barang dihapus: ${nama} - ${formatRupiah(harga)}`);
+            });
+
+            if (isNewItem) {
+                addLogActivity(`Barang ditambahkan: ${nama} - ${formatRupiah(harga)}`);
+            }
+        }
+
+        function updateTotalHarga() {
+            totalHargaSpan.textContent = formatRupiah(totalHarga);
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('barangList', JSON.stringify(barangList));
+            localStorage.setItem('logActivities', JSON.stringify(logActivities));
+        }
+
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(angka);
+        }
+
+        document.getElementById('hargaBarang').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            e.target.value = formatNumber(value);
+        });
+
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function addLogActivity(activity) {
+            const now = new Date();
+            const timestamp = now.toLocaleString('id-ID');
+            logActivities.push(`[${timestamp}] ${activity}`);
+            saveToLocalStorage();
+            updateLogList();
+        }
+
+        function updateLogList() {
+            logList.innerHTML = '';
+            logActivities.forEach(activity => {
+                const li = document.createElement('li');
+                li.textContent = activity;
+                logList.appendChild(li);
+            });
+        }
+
+        logButton.addEventListener('click', function() {
+            barangContainer.style.display = 'none';
+            logContainer.style.display = 'block';
+        });
+
+        backButton.addEventListener('click', function() {
+            logContainer.style.display = 'none';
+            barangContainer.style.display = 'block';
+        });
+
+        resetLogForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const pin = document.getElementById('resetLogPin').value;
+            if (pin === '1234') {
+                logActivities = [];
+                saveToLocalStorage();
+                updateLogList();
+                alert("Log aktivitas telah direset.");
+                document.getElementById('resetLogPin').value = '';
+            } else {
+                alert("PIN salah. Reset log aktivitas dibatalkan.");
+            }
+        });
     </script>
-    
-    <script type="module">
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-    const db = getFirestore();
-    const barangCollection = collection(db, "barang");
-
-    document.getElementById("barangForm").addEventListener("submit", async function (event) {
-        event.preventDefault();
-        
-        let namaBarang = document.getElementById("namaBarang").value;
-        let hargaBarang = document.getElementById("hargaBarang").value;
-
-        if (namaBarang.trim() === "" || hargaBarang.trim() === "") {
-            alert("Nama barang dan harga harus diisi!");
-            return;
-        }
-
-        try {
-            await addDoc(barangCollection, {
-                nama: namaBarang,
-                harga: hargaBarang
-            });
-
-            document.getElementById("namaBarang").value = "";
-            document.getElementById("hargaBarang").value = "";
-
-            loadBarang();  // Refresh daftar barang setelah menambah data
-        } catch (error) {
-            console.error("Error menambah barang: ", error);
-        }
-    });
-
-    async function loadBarang() {
-        const querySnapshot = await getDocs(barangCollection);
-        const tbody = document.querySelector("#daftarBarang tbody");
-        tbody.innerHTML = ""; // Hapus isi tabel sebelum menampilkan data baru
-
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const row = `<tr>
-                <td>${data.nama}</td>
-                <td>Rp ${data.harga}</td>
-                <td><button class="delete-btn" data-id="${doc.id}">Hapus</button></td>
-            </tr>`;
-            tbody.innerHTML += row;
-        });
-
-        // Tambahkan event listener untuk tombol hapus
-        document.querySelectorAll(".delete-btn").forEach(button => {
-            button.addEventListener("click", function () {
-                deleteBarang(this.dataset.id);
-            });
-        });
-    }
-
-    async function deleteBarang(id) {
-        alert("Fungsi hapus barang belum ditambahkan, tapi barang dengan ID: " + id + " bisa dihapus nanti.");
-        // Di sini nanti bisa tambahkan kode untuk menghapus dari Firestore
-    }
-
-    loadBarang();  // Panggil saat halaman dimuat untuk menampilkan daftar barang
-</script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
