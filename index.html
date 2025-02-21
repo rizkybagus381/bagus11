@@ -177,5 +177,68 @@
     <script>
         // Script aplikasi tetap sama, tidak ada perubahan
     </script>
+    
+    <script type="module">
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const db = getFirestore();
+    const barangCollection = collection(db, "barang");
+
+    document.getElementById("barangForm").addEventListener("submit", async function (event) {
+        event.preventDefault();
+        
+        let namaBarang = document.getElementById("namaBarang").value;
+        let hargaBarang = document.getElementById("hargaBarang").value;
+
+        if (namaBarang.trim() === "" || hargaBarang.trim() === "") {
+            alert("Nama barang dan harga harus diisi!");
+            return;
+        }
+
+        try {
+            await addDoc(barangCollection, {
+                nama: namaBarang,
+                harga: hargaBarang
+            });
+
+            document.getElementById("namaBarang").value = "";
+            document.getElementById("hargaBarang").value = "";
+
+            loadBarang();  // Refresh daftar barang setelah menambah data
+        } catch (error) {
+            console.error("Error menambah barang: ", error);
+        }
+    });
+
+    async function loadBarang() {
+        const querySnapshot = await getDocs(barangCollection);
+        const tbody = document.querySelector("#daftarBarang tbody");
+        tbody.innerHTML = ""; // Hapus isi tabel sebelum menampilkan data baru
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const row = `<tr>
+                <td>${data.nama}</td>
+                <td>Rp ${data.harga}</td>
+                <td><button class="delete-btn" data-id="${doc.id}">Hapus</button></td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+
+        // Tambahkan event listener untuk tombol hapus
+        document.querySelectorAll(".delete-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                deleteBarang(this.dataset.id);
+            });
+        });
+    }
+
+    async function deleteBarang(id) {
+        alert("Fungsi hapus barang belum ditambahkan, tapi barang dengan ID: " + id + " bisa dihapus nanti.");
+        // Di sini nanti bisa tambahkan kode untuk menghapus dari Firestore
+    }
+
+    loadBarang();  // Panggil saat halaman dimuat untuk menampilkan daftar barang
+</script>
 </body>
 </html>
