@@ -1,346 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <title>WiFi Card Generator</title>
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
 
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    form {
+      border: dashed 2px #d1d5db;
+      padding: .5rem 2rem;
+      font: 16px sans-serif;
+    }
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Input Barang</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #1a1a1a;
-            color: #e0e0e0;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .header h1 {
-            color: #ffffff;
-        }
-        .header p {
-            color: #b0b0b0;
-            font-size: 0.9em;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        input, button {
-            padding: 5px;
-            background-color: #333;
-            color: #e0e0e0;
-            border: 1px solid #555;
-            transition: box-shadow 0.3s ease-in-out;
-        }
-        input:hover, input:focus, button:hover, button:focus {
-            box-shadow: 0 0 10px #00ffff;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #555;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #2a2a2a;
-        }
-        .delete-btn {
-            background-color: #8b0000;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-      ьогоcursor: pointer;
-            transition: box-shadow 0.3s ease-in-out;
-        }
-        .delete-btn:hover {
-            box-shadow: 0 0 10px #ff0000;
-        }
-        #loginForm, #barangContainer, #logContainer {
-            display: none;
-        }
-        .copyright {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.8em;
-            color: #b0b0b0;
-        }
-        #logButton, #resetLogButton {
-            margin-top: 10px;
-        }
-        #logList {
-            list-style-type: none;
-            padding: 0;
-        }
-        #logList li {
-            margin-bottom: 5px;
-        }
-        #resetLogForm {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        #resetLogForm input {
-            flex-grow: 1;
-        }
-    </style>
+    .internal {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .inputs {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+    }
+
+    input {
+      color: #374151;
+      font-family: monospace;
+      height: 38px;
+      padding: 0 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 0.25rem;
+    }
+
+    button {
+      height: 2.5rem;
+      background-color: #0ea5e9;
+      color: #fff;
+      border-radius: 0.25rem;
+      border: none;
+      font-size: 1rem;
+    }
+
+    @media print {
+      button {
+        display: none;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Sistem Input Barang</h1>
-        <p>WEBSITE INI TELAH DIAWASI OLEH UNDANG-UNDANG YANG ADA DI INDONESIA</p>
-        <p>WEBSITE INI DIBUAT OLEH Riski Bagus</p>
-    </div>
+  <form>
+    <h2>WiFi Login</h2>
+    <div class="internal">
+      <img width="164" src="https://api.qrserver.com/v1/create-qr-code/?size=164x164&data=todo">
+      <div class="inputs">
+        <label>
+          Network name
+          <input class="ssid" placeholder="WiFi network name">
+        </label>
+        <label>
+          Password
+          <input class="password" placeholder="Password">
+        </label>
+      </div>
+    </div>
+    <p>
+      📸 Point your phone's camera at the QR code to connect to WiFi
+    </p>
+    <button type="button">Print Wifi Card</button>
+  </form>
 
-    <div id="loginForm">
-        <h2>Login</h2>
-        <form id="login">
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        <h3>PIN OWNER</h3>
-        <form id="pinLogin">
-            <input type="password" id="pinOwner" placeholder="PIN" required>
-            <button type="submit">Login dengan PIN</button>
-        </form>
-    </div>
+  <script>
+    const img = document.querySelector('img');
+    const ssid = document.querySelector('.ssid');
+    const password = document.querySelector('.password');
+    const button = document.querySelector('button');
 
-    <div id="barangContainer">
-        <h1>Input Barang</h1>
-        <form id="barangForm">
-            <input type="text" id="namaBarang" placeholder="Nama Barang" required>
-            <input type="text" id="hargaBarang" placeholder="Harga Barang (Rp)" required>
-            <button type="submit">Tambah Barang</button>
-        </form>
-        <table id="daftarBarang">
-            <thead>
-                <tr>
-                    <th>Nama Barang</th>
-                    <th>Harga</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <h2>Total Harga: <span id="totalHarga">Rp 0</span></h2>
-        <button id="logButton">Log Aktivitas</button>
-    </div>
+    function update() {
+      const wifi = `WIFI:T:WPA;S:${ssid.value};P:${password.value};;`;
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=164x164&data=${wifi}`;
+    }
 
-    <div id="logContainer">
-        <h2>Log Aktivitas</h2>
-        <ul id="logList"></ul>
-        <form id="resetLogForm">
-            <input type="password" id="resetLogPin" placeholder="Masukkan PIN untuk reset" required>
-            <button type="submit" id="resetLogButton">Reset Log</button>
-        </form>
-        <button id="backButton">Kembali</button>
-    </div>
+    ssid.addEventListener('keyup', update);
+    password.addEventListener('keyup', update);
 
-    <div class="copyright">
-        &copy; 2024 Riski Bagus. All rights reserved.
-    </div>
-
-    <script>
-
-        const firebaseConfig = {
-  apiKey: "AIzaSyA-TDQmT_mhJFuONyRbIM32SXwyHt71Jb4",
-  authDomain: "input-a8e47.firebaseapp.com",
-  databaseURL: "https://input-a8e47-default-rtdb.firebaseio.com",
-  projectId: "input-a8e47",
-  storageBucket: "input-a8e47.firebasestorage.app",
-  messagingSenderId: "710050183197",
-  appId: "1:710050183197:web:5541b2af0abd7e0bb76ef4",
-  measurementId: "G-7X4E54NZTL"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-        
-        const loginForm = document.getElementById('loginForm');
-        const barangContainer = document.getElementById('barangContainer');
-        const logContainer = document.getElementById('logContainer');
-        const form = document.getElementById('barangForm');
-        const table = document.getElementById('daftarBarang').getElementsByTagName('tbody')[0];
-        const totalHargaSpan = document.getElementById('totalHarga');
-        const logButton = document.getElementById('logButton');
-        const resetLogForm = document.getElementById('resetLogForm');
-        const backButton = document.getElementById('backButton');
-        const logList = document.getElementById('logList');
-        let totalHarga = 0;
-        let barangList = [];
-        let logActivities = [];
-
-        // Show login form initially
-        loginForm.style.display = 'block';
-
-        document.getElementById('login').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            if (username === 'bagus' && password === '1234') {
-                loginSuccess();
-            } else {
-                alert('Username atau password salah!');
-            }
-        });
-
-        document.getElementById('pinLogin').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const pin = document.getElementById('pinOwner').value;
-
-            if (pin === '1234') {
-                loginSuccess();
-            } else {
-                alert('PIN salah!');
-            }
-        });
-
-        function loginSuccess() {
-            loginForm.style.display = 'none';
-            barangContainer.style.display = 'block';
-            loadData();
-        }
-
-       function loadData() {
-    const barangRef = database.ref('barang');
-
-    barangRef.on('value', (snapshot) => { // 'value' event listener untuk real-time update
-        table.innerHTML = ''; // Kosongkan tabel sebelum menampilkan data baru
-        totalHarga = 0;
-        barangList = [];
-        snapshot.forEach(childSnapshot => {
-            const barang = childSnapshot.val();
-            const keyBarang = childSnapshot.key; // Dapatkan key unik dari Firebase
-            tambahBarangKeTabel(barang.nama, barang.harga, keyBarang); // Tambahkan ke tabel dengan key
-            barangList.push({nama: barang.nama, harga: barang.harga, key: keyBarang}); // Simpan key di barangList
-        });
-        updateTotalHarga();
-    });
-    // Tidak perlu lagi load dari localStorage, karena data sudah di-load dari Firebase secara real-time
-}
-
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const nama = document.getElementById('namaBarang').value;
-            const hargaInput = document.getElementById('hargaBarang').value;
-            const harga = parseFloat(hargaInput.replace(/\./g, ''));
-
-            if (isNaN(harga)) {
-                alert('Harga harus berupa angka');
-                return;
-            }
-
-            tambahBarang(nama, harga, true);
-            //barangList.push({nama, harga});
-            //saveToLocalStorage();
-
-            form.reset();
-        });
-
-        function tambahBarang(nama, harga, isNewItem) {
-    const barangRef = database.ref('barang'); // Referensi ke node 'barang' di database
-    const newData = {
-        nama: nama,
-        harga: harga
-    };
-
-    barangRef.push(newData) // Tambahkan data baru ke 'barang' (Firebase akan membuat key unik otomatis)
-        .then(() => {
-            console.log('Barang berhasil ditambahkan ke Firebase');
-            if (isNewItem) { // Log aktivitas hanya untuk barang baru yang ditambahkan melalui form
-                addLogActivity(`Barang ditambahkan: ${nama} - ${formatRupiah(harga)}`);
-            }
-            form.reset(); // Reset form setelah berhasil ditambahkan
-        })
-        .catch((error) => {
-            console.error('Error menambahkan barang ke Firebase:', error);
-            alert('Gagal menambahkan barang. Coba lagi nanti.');
-        });
-}
-
-
-        function updateTotalHarga() {
-            totalHargaSpan.textContent = formatRupiah(totalHarga);
-        }
-
-        function saveToLocalStorage() {
-            localStorage.setItem('barangList', JSON.stringify(barangList));
-            localStorage.setItem('logActivities', JSON.stringify(logActivities));
-        }
-
-        function formatRupiah(angka) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(angka);
-        }
-
-        document.getElementById('hargaBarang').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            e.target.value = formatNumber(value);
-        });
-
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
-
-        function addLogActivity(activity) {
-            const now = new Date();
-            const timestamp = now.toLocaleString('id-ID');
-            logActivities.push(`[${timestamp}] ${activity}`);
-            saveToLocalStorage();
-            updateLogList();
-        }
-
-        function updateLogList() {
-            logList.innerHTML = '';
-            logActivities.forEach(activity => {
-                const li = document.createElement('li');
-                li.textContent = activity;
-                logList.appendChild(li);
-            });
-        }
-
-        logButton.addEventListener('click', function() {
-            barangContainer.style.display = 'none';
-            logContainer.style.display = 'block';
-        });
-
-        backButton.addEventListener('click', function() {
-            logContainer.style.display = 'none';
-            barangContainer.style.display = 'block';
-        });
-
-        resetLogForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const pin = document.getElementById('resetLogPin').value;
-            if (pin === '1234') {
-                logActivities = [];
-                saveToLocalStorage();
-                updateLogList();
-                alert("Log aktivitas telah direset.");
-                document.getElementById('resetLogPin').value = '';
-            } else {
-                alert("PIN salah. Reset log aktivitas dibatalkan.");
-            }
-        });
-    </script>
+    button.addEventListener('click', () => {
+      window.print();
+    });
+  </script>
 </body>
 </html>
